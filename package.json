@@ -14,7 +14,6 @@
   "dependencies": {
     "@prisma/client": "^5.0.0",
     "express": "^5.2.1",
-    "mongoose": "^9.1.5",
     "prisma": "^5.0.0"
   }
 }
