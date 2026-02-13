@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dough Nations - Employee Clocking System</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <!-- Cobweb Background -->
+    <div class="cobweb-container">
+        <svg class="cobweb" viewBox="0 0 1200 800" preserveAspectRatio="none">
+            <!-- Radial threads -->
+            <line x1="600" y1="400" x2="600" y2="50" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="750" y2="80" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="870" y2="150" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="950" y2="250" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="1020" y2="400" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="950" y2="550" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="870" y2="650" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="750" y2="720" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="600" y2="750" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="450" y2="720" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="330" y2="650" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="250" y2="550" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="180" y2="400" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="250" y2="250" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="330" y2="150" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <line x1="600" y1="400" x2="450" y2="80" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            
+            <!-- Concentric circles -->
+            <circle cx="600" cy="400" r="80" fill="none" stroke="#d4a574" stroke-width="1.5" opacity="0.6"/>
+            <circle cx="600" cy="400" r="160" fill="none" stroke="#d4a574" stroke-width="1.5" opacity="0.5"/>
+            <circle cx="600" cy="400" r="240" fill="none" stroke="#d4a574" stroke-width="1.5" opacity="0.4"/>
+            <circle cx="600" cy="400" r="320" fill="none" stroke="#d4a574" stroke-width="1.5" opacity="0.3"/>
+            
+            <!-- Center spider -->
+            <circle cx="600" cy="400" r="8" fill="#8b6914" opacity="0.7"/>
+        </svg>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="logo">🥧 Dough Nations</h1>
+                <p class="tagline">Premium Pie Manufacturing - Employee Clocking System</p>
+            </div>
+            <div class="time-display" id="time-display">00:00:00</div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Clock In/Out Section -->
+        <section class="clock-section">
+            <div class="clock-card">
+                <h2>Employee Clock In/Out</h2>
+                <div class="clock-display">
+                    <div class="current-time" id="current-time">00:00</div>
+                    <div class="current-date" id="current-date">Loading...</div>
+                </div>
+                <form id="clock-form">
+                    <input type="email" id="employee-email" placeholder="Enter your email" required>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-clock-in" id="clock-in-btn">Clock In</button>
+                        <button type="button" class="btn btn-clock-out" id="clock-out-btn">Clock Out</button>
+                    </div>
+                </form>
+                <div id="clock-status" class="status-message"></div>
+            </div>
+        </section>
+
+        <!-- User Management Section -->
+        <section class="user-section">
+            <div class="user-card">
+                <h2>Employee Registration</h2>
+                <form id="user-form">
+                    <div class="form-group">
+                        <input type="text" id="name" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="email" placeholder="Email Address" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-register">Register Employee</button>
+                </form>
+            </div>
+
+            <!-- Employee List -->
+            <div class="employee-list-card">
+                <h2>Registered Employees</h2>
+                <div id="user-list" class="user-list"></div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Dough Nations Pie Manufacturing. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

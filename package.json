@@ -1,0 +1,20 @@
+{
+  "name": "dough-nations",
+  "version": "1.0.0",
+  "description": "- Track work hours, breaks, and overtime.\r - Generate payroll reports.\r - User Management System for profile CRUD operations.\r - Login authentication.",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "express": "^5.2.1",
+    "mongoose": "^9.1.5",
+    "prisma": "^5.0.0"
+  }
+}
