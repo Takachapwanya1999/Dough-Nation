@@ -46,55 +46,497 @@
                 <h1 class="logo">🥧 Dough Nations</h1>
                 <p class="tagline">Premium Pie Manufacturing - Employee Clocking System</p>
             </div>
-            <div class="time-display" id="time-display">00:00:00</div>
+            <div class="header-right">
+                <div class="time-display" id="time-display">00:00:00</div>
+                <div id="user-info" class="user-info" style="display:none;">
+                    <button class="btn btn-icon" id="notification-btn" title="Notifications" style="display:none;">
+                        🔔 <span id="notification-count" class="notification-badge" style="display:none;">0</span>
+                    </button>
+                    <button class="btn btn-icon" id="dark-mode-toggle" title="Toggle Dark Mode">🌙</button>
+                    <button class="btn btn-icon" id="settings-btn" title="Settings">⚙️</button>
+                    <span id="user-name">User</span>
+                    <button class="btn btn-logout" id="logout-btn">Logout</button>
+                </div>
+            </div>
         </div>
     </header>
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Clock In/Out Section -->
-        <section class="clock-section">
-            <div class="clock-card">
-                <h2>Employee Clock In/Out</h2>
-                <div class="clock-display">
-                    <div class="current-time" id="current-time">00:00</div>
-                    <div class="current-date" id="current-date">Loading...</div>
+        <!-- LOGIN PAGE -->
+        <div id="login-page" class="auth-page">
+            <div class="auth-card">
+                <h2>Login to Your Account</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <input type="email" id="login-email" placeholder="Email Address" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="login-password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                <div id="login-status" class="status-message"></div>
+                <p class="auth-link">Don't have an account? <a href="#" onclick="toggleAuthPage()">Register here</a></p>
+                
+                <!-- Quick Demo Access -->
+                <div class="demo-section">
+                    <p style="margin-top: 15px; text-align: center; color: #a0522d; font-size: 0.9em;">Quick Demo Access</p>
+                    <button type="button" class="demo-btn" onclick="quickDemoLogin('employee@demo.com', 'demo123')">Employee (demo123)</button>
+                    <button type="button" class="demo-btn" onclick="quickDemoLogin('manager@demo.com', 'demo123')">Manager (demo123)</button>
+                    <button type="button" class="demo-btn" onclick="quickDemoLogin('admin@demo.com', 'demo123')">Admin (demo123)</button>
                 </div>
-                <form id="clock-form">
-                    <input type="email" id="employee-email" placeholder="Enter your email" required>
-                    <div class="button-group">
-                        <button type="button" class="btn btn-clock-in" id="clock-in-btn">Clock In</button>
-                        <button type="button" class="btn btn-clock-out" id="clock-out-btn">Clock Out</button>
-                    </div>
-                </form>
-                <div id="clock-status" class="status-message"></div>
             </div>
-        </section>
+        </div>
 
-        <!-- User Management Section -->
-        <section class="user-section">
-            <div class="user-card">
-                <h2>Employee Registration</h2>
-                <form id="user-form">
+        <!-- REGISTRATION PAGE -->
+        <div id="register-page" class="auth-page" style="display:none;">
+            <div class="auth-card">
+                <h2>Create Your Account</h2>
+                <form id="register-form">
                     <div class="form-group">
-                        <input type="text" id="name" placeholder="Full Name" required>
+                        <input type="text" id="register-name" placeholder="Full Name" required>
                     </div>
                     <div class="form-group">
-                        <input type="email" id="email" placeholder="Email Address" required>
+                        <input type="email" id="register-email" placeholder="Email Address" required>
                     </div>
                     <div class="form-group">
-                        <input type="password" id="password" placeholder="Password" required>
+                        <input type="password" id="register-password" placeholder="Password (min 6 characters)" required>
                     </div>
-                    <button type="submit" class="btn btn-register">Register Employee</button>
+                    <button type="submit" class="btn btn-primary">Register</button>
                 </form>
+                <div id="register-status" class="status-message"></div>
+                <p class="auth-link">Already have an account? <a href="#" onclick="toggleAuthPage()">Login here</a></p>
+            </div>
+        </div>
+
+        <!-- MAIN DASHBOARD (shows after login) -->
+        <div id="dashboard" style="display:none;">
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="switchTab('time-tracking')">⏱️ Time Tracking</button>
+                <button class="tab-btn" onclick="switchTab('leave-shift')">📋 Leave & Shifts</button>
+                <button class="tab-btn" onclick="switchTab('payroll')" id="payroll-tab" style="display:none;">💰 Payroll</button>
+                <button class="tab-btn" onclick="switchTab('reports')" id="reports-tab" style="display:none;">📊 Reports</button>
+                <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+                <button class="tab-btn" id="manager-btn" onclick="switchTab('management')" style="display:none;">👨‍💼 Management</button>
+                <button class="tab-btn" id="admin-btn" onclick="switchTab('admin')" style="display:none;">🔐 Admin</button>
             </div>
 
-            <!-- Employee List -->
-            <div class="employee-list-card">
-                <h2>Registered Employees</h2>
-                <div id="user-list" class="user-list"></div>
+            <!-- TAB 1: TIME TRACKING -->
+            <div id="time-tracking" class="tab-content" style="display:block;">
+                <!-- Clock In/Out Section -->
+                <section class="clock-section">
+                    <div class="clock-card">
+                        <h2>Clock In/Out</h2>
+                        <div class="clock-display">
+                            <div class="current-time" id="current-time">00:00</div>
+                            <div class="current-date" id="current-date">Loading...</div>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" class="btn btn-clock-in" id="clock-in-btn">Clock In</button>
+                            <button type="button" class="btn btn-clock-out" id="clock-out-btn">Clock Out</button>
+                        </div>
+                        <div id="clock-status" class="status-message"></div>
+                        
+                        <!-- Break Tracking -->
+                        <div class="break-section">
+                            <h3>Break Management</h3>
+                            <div class="button-group">
+                                <button type="button" class="btn btn-break-start" id="break-start-btn">Start Break</button>
+                                <button type="button" class="btn btn-break-end" id="break-end-btn">End Break</button>
+                            </div>
+                            <div id="break-status" class="status-message"></div>
+                            <div id="active-break" class="active-break" style="display:none;">
+                                <p>Break started at: <span id="break-time">--:--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Work Hours Report -->
+                <section class="report-section">
+                    <div class="report-card">
+                        <h2>Your Work Records</h2>
+                        <button class="btn btn-export" id="export-records-btn">📥 Export as CSV</button>
+                        <div id="records-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Overtime Report -->
+                <section class="overtime-section" style="grid-column: 1 / -1;">
+                    <div class="overtime-card">
+                        <h2>Overtime Report (Last 30 Days)</h2>
+                        <div id="overtime-data" class="overtime-data">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </section>
+
+            <!-- TAB 2: LEAVE & SHIFTS -->
+            <div id="leave-shift" class="tab-content" style="display:none;">
+                <!-- Leave Request Section -->
+                <section class="leave-section">
+                    <div class="leave-card">
+                        <h2>Leave & PTO Management</h2>
+                        <form id="leave-request-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Leave Type</label>
+                                    <select id="leave-type" required>
+                                        <option value="VACATION">Vacation</option>
+                                        <option value="SICK_DAY">Sick Day</option>
+                                        <option value="PERSONAL_DAY">Personal Day</option>
+                                        <option value="UNPAID">Unpaid Leave</option>
+                                        <option value="BEREAVEMENT">Bereavement</option>
+                                        <option value="MATERNITY">Maternity</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Start Date</label>
+                                    <input type="date" id="leave-start-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>End Date</label>
+                                    <input type="date" id="leave-end-date" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Reason</label>
+                                <textarea id="leave-reason" placeholder="Provide reason for leave request" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit Leave Request</button>
+                        </form>
+                        <div id="leave-status" class="status-message"></div>
+                        
+                        <h3 style="margin-top: 30px;">Your Leave Requests</h3>
+                        <div id="leave-requests-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shift Assignment Section -->
+                <section class="shift-section">
+                    <div class="shift-card">
+                        <h2>My Shift Schedule</h2>
+                        <div id="shift-assignments-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shift Swap Section -->
+                <section class="shift-swap-section">
+                    <div class="shift-swap-card">
+                        <h2>Shift Swap Requests</h2>
+                        <form id="shift-swap-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Request Swap With</label>
+                                    <select id="swap-employee-id" required>
+                                        <option value="">Select Employee...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Original Shift Date</label>
+                                    <input type="date" id="swap-original-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Requested Shift Date</label>
+                                    <input type="date" id="swap-requested-date" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Reason</label>
+                                <textarea id="swap-reason" placeholder="Why do you need this swap?" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Request Shift Swap</button>
+                        </form>
+                        <div id="shift-swap-status" class="status-message"></div>
+                        
+                        <h3 style="margin-top: 30px;">Shift Swap Requests</h3>
+                        <div id="shift-swaps-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB 3: MANAGEMENT (for managers/supervisors) -->
+            <div id="management" class="tab-content" style="display:none;">
+                <!-- Attendance Tracking -->
+                <section class="attendance-section">
+                    <div class="attendance-card">
+                        <h2>Team Attendance</h2>
+                        <div class="admin-controls">
+                            <input type="text" id="search-employees-mgmt" placeholder="Search team members..." class="search-input">
+                        </div>
+                        <div id="attendance-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Approval Workflows -->
+                <section class="approval-section">
+                    <div class="approval-card">
+                        <h2>Approval Requests (Pending)</h2>
+                        <div id="approval-requests-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading pending approvals...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Team Performance -->
+                <section class="performance-section">
+                    <div class="performance-card">
+                        <h2>Team Performance Metrics</h2>
+                        <div id="team-performance-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB 4: ADMIN PANEL -->
+            <div id="admin" class="tab-content" style="display:none;">
+                <!-- Payroll Report -->
+                <section class="admin-section">
+                    <div class="admin-card">
+                        <h2>Payroll Report</h2>
+                        <div class="admin-controls">
+                            <input type="text" id="search-employees" placeholder="Search employees..." class="search-input">
+                            <button class="btn btn-export" id="export-payroll-btn">📥 Export as CSV</button>
+                        </div>
+                        <div id="payroll-data" class="payroll-table">
+                            <p style="text-align: center; color: #a0522d;">Loading payroll data...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Department Management -->
+                <section class="department-section">
+                    <div class="department-card">
+                        <h2>Departments</h2>
+                        <form id="create-department-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Department Name</label>
+                                    <input type="text" id="dept-name" placeholder="e.g., Production" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <input type="text" id="dept-description" placeholder="Department description">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Department</button>
+                        </form>
+                        <div id="create-dept-status" class="status-message"></div>
+                        
+                        <h3 style="margin-top: 20px;">All Departments</h3>
+                        <div id="departments-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Role Management -->
+                <section class="roles-section">
+                    <div class="roles-card">
+                        <h2>User Role Management</h2>
+                        <div class="admin-controls">
+                            <input type="text" id="search-users-role" placeholder="Search users..." class="search-input">
+                        </div>
+                        <div id="users-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading users...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: PAYROLL (for employees/managers/admins) -->
+            <div id="payroll" class="tab-content" style="display:none;">
+                <!-- Wage Configuration -->
+                <section class="payroll-section">
+                    <div class="payroll-card">
+                        <h2>Wage & Salary Configuration</h2>
+                        <div id="my-wage-info" class="wage-info">
+                            <p style="text-align: center; color: #a0522d;">Loading wage information...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Payroll Records -->
+                <section class="payroll-section">
+                    <div class="payroll-card">
+                        <h2>Payroll Records</h2>
+                        <div id="my-payroll-records" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">Loading payroll records...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Deductions & Bonuses -->
+                <section class="payroll-section">
+                    <div class="payroll-card">
+                        <h2>Deductions & Bonuses</h2>
+                        <div class="section-row">
+                            <div class="section-col">
+                                <h3>Deductions</h3>
+                                <div id="deductions-list" class="records-list">
+                                    <p style="text-align: center;">Loading...</p>
+                                </div>
+                            </div>
+                            <div class="section-col">
+                                <h3>Bonuses</h3>
+                                <div id="bonuses-list" class="records-list">
+                                    <p style="text-align: center;">Loading...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: REPORTS & ANALYTICS -->
+            <div id="reports" class="tab-content" style="display:none;">
+                <!-- Analytics Dashboard -->
+                <section class="analytics-section">
+                    <div class="analytics-card">
+                        <h2>Analytics Dashboard</h2>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-value" id="total-hours">0</div>
+                                <div class="stat-label">Total Hours</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="total-overtime">0</div>
+                                <div class="stat-label">Overtime Hours</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="attendance-rate">0%</div>
+                                <div class="stat-label">Attendance Rate</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="avg-daily-hours">0</div>
+                                <div class="stat-label">Avg Daily Hours</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Generated Reports -->
+                <section class="reports-section">
+                    <div class="reports-card">
+                        <h2>Generated Reports</h2>
+                        <div class="admin-controls">
+                            <select id="report-type-select" style="padding: 10px; border: 1px solid #d4a574; border-radius: 5px;">
+                                <option value="">Select Report Type...</option>
+                                <option value="WEEKLY_PAYROLL">Weekly Payroll</option>
+                                <option value="MONTHLY_PAYROLL">Monthly Payroll</option>
+                                <option value="QUARTERLY_PAYROLL">Quarterly Payroll</option>
+                                <option value="ATTENDANCE_REPORT">Attendance Report</option>
+                                <option value="PRODUCTIVITY_REPORT">Productivity Report</option>
+                                <option value="OVERTIME_REPORT">Overtime Report</option>
+                            </select>
+                            <input type="month" id="report-period-input" style="padding: 10px; border: 1px solid #d4a574; border-radius: 5px;">
+                            <button class="btn btn-primary" id="generate-report-btn">Generate Report</button>
+                        </div>
+                        <div id="generated-reports-list" class="records-list">
+                            <p style="text-align: center; color: #a0522d;">No reports generated yet</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: SETTINGS & PREFERENCES -->
+            <div id="settings" class="tab-content" style="display:none;">
+                <!-- Notification Settings -->
+                <section class="settings-section">
+                    <div class="settings-card">
+                        <h2>Notification Preferences</h2>
+                        <form id="notification-settings-form">
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="email-notifications" checked>
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="push-notifications">
+                                    Push Notifications
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="clock-in-reminders" checked>
+                                    Clock In Reminders
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="shift-alerts" checked>
+                                    Shift Start Alerts
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="payroll-notifications" checked>
+                                    Payroll Notifications
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </form>
+                        <div id="settings-status" class="status-message"></div>
+                    </div>
+                </section>
+
+                <!-- Display Settings -->
+                <section class="settings-section">
+                    <div class="settings-card">
+                        <h2>Display Settings</h2>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="dark-mode-setting">
+                                Dark Mode
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calendar View -->
+                <section class="settings-section">
+                    <div class="settings-card">
+                        <h2>Schedule Calendar</h2>
+                        <div id="schedule-calendar" class="calendar-view">
+                            <p style="text-align: center; color: #a0522d;">Calendar view coming soon...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Account Security -->
+                <section class="settings-section">
+                    <div class="settings-card">
+                        <h2>Account Security</h2>
+                        <div class="security-option">
+                            <h3>Two-Factor Authentication (2FA)</h3>
+                            <button class="btn btn-primary" id="setup-2fa-btn">Setup 2FA</button>
+                        </div>
+                        <div class="security-option">
+                            <h3>Login History</h3>
+                            <div id="login-history" class="records-list">
+                                <p>Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
     </div>
 
     <footer class="footer">

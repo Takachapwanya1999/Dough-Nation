@@ -10,12 +10,250 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+  SUPERVISOR
+  ADMIN
+}
+
+enum LeaveType {
+  VACATION
+  SICK_DAY
+  PERSONAL_DAY
+  UNPAID
+  BEREAVEMENT
+  MATERNITY
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ShiftSwapStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttendanceStatus {
+  ON_TIME
+  LATE
+  ABSENT
+  EARLY_DEPARTURE
+}
+
+enum PerformanceRating {
+  EXCELLENT
+  GOOD
+  SATISFACTORY
+  NEEDS_IMPROVEMENT
+  POOR
+}
+
+enum DeductionType {
+  FEDERAL_TAX
+  STATE_TAX
+  SOCIAL_SECURITY
+  MEDICARE
+  HEALTH_INSURANCE
+  DENTAL_INSURANCE
+  VISION_INSURANCE
+  RETIREMENT_401K
+  GARNISHMENT
+  OTHER
+}
+
+enum BonusType {
+  PERFORMANCE
+  ATTENDANCE
+  REFERRAL
+  SEASONAL
+  SIGNING
+  RETENTION
+  OTHER
+}
+
+enum ReportType {
+  WEEKLY_PAYROLL
+  MONTHLY_PAYROLL
+  QUARTERLY_PAYROLL
+  ANNUAL_PAYROLL
+  ATTENDANCE_REPORT
+  PRODUCTIVITY_REPORT
+  OVERTIME_REPORT
+  CUSTOM
+}
+
+enum NotificationType {
+  CLOCK_IN_REMINDER
+  SHIFT_START_ALERT
+  SHIFT_END_ALERT
+  LEAVE_APPROVED
+  LEAVE_REJECTED
+  APPROVAL_PENDING
+  PAYROLL_READY
+  PERFORMANCE_REVIEW
+  OTHER
+}
+
 model User {
   id    Int     @id @default(autoincrement())
   name  String
   email String  @unique
   password String
+  role  UserRole @default(EMPLOYEE)
+  department   Department? @relation("UserDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
+  departmentId Int?
+  manager      User?  @relation("ManagerRelation", fields: [managerId], references: [id], onDelete: SetNull)
+  managerId    Int?
+  subordinates User[] @relation("ManagerRelation")
+  managedDepartment Department?
   clocks Clock[]
+  breaks Break[]
+  shifts ShiftAssignment[]
+  leaves Leave[]
+  leaveRequests LeaveRequest[]
+  swapRequestsSent ShiftSwapRequest[] @relation("EmployeeInitiated")
+  swapRequestsReceived ShiftSwapRequest[] @relation("EmployeeRequested")
+  attendanceRecords AttendanceRecord[]
+  overtimeApprovals ApprovalRequest[]
+  performanceMetrics PerformanceMetric[]
+  wage EmployeeWage?
+  auditLogs AuditLog[]
+  twoFactorAuth TwoFactorAuth?
+  locationLogs LocationLog[]
+  ipLogs IpLog[]
+  notificationSettings NotificationSetting?
+  notifications Notification[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Department {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  description String?
+  manager User?   @relation(fields: [managerId], references: [id], onDelete: SetNull)
+  managerId Int? @unique
+  employees User[] @relation("UserDepartment")
+  shifts Shift[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Shift {
+  id        Int     @id @default(autoincrement())
+  name      String // e.g., "Morning", "Evening", "Night"
+  startTime String // HH:mm format
+  endTime   String // HH:mm format
+  department    Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  departmentId  Int
+  assignments ShiftAssignment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShiftAssignment {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  shift     Shift   @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  shiftId   Int
+  date      DateTime // Date of assignment
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Leave {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  type      LeaveType
+  startDate DateTime
+  endDate   DateTime
+  status    LeaveStatus @default(PENDING)
+  daysUsed  Float
+  reason    String?
+  attachments String? // JSON array of file URLs
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LeaveRequest {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  type      LeaveType
+  startDate DateTime
+  endDate   DateTime
+  reason    String
+  status    LeaveStatus @default(PENDING)
+  rejectionReason String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShiftSwapRequest {
+  id        Int     @id @default(autoincrement())
+  initiatedBy User   @relation("EmployeeInitiated", fields: [initiatedById], references: [id], onDelete: Cascade)
+  initiatedById Int
+  requestedEmployeeId Int
+  requestedEmployee User @relation("EmployeeRequested", fields: [requestedEmployeeId], references: [id], onDelete: Cascade)
+  originalShiftDate DateTime
+  requestedShiftDate DateTime
+  status    ShiftSwapStatus @default(PENDING)
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AttendanceRecord {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  date      DateTime
+  status    AttendanceStatus
+  clockInTime DateTime?
+  clockOutTime DateTime?
+  minutesLate Int? @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ApprovalRequest {
+  id        Int     @id @default(autoincrement())
+  type      String // "OVERTIME", "TIME_ADJUSTMENT", "LEAVE"
+  requestedBy User   @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  requestedById Int
+  details   String // JSON details
+  status    ApprovalStatus @default(PENDING)
+  approverNotes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PerformanceMetric {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  period    String // "Q1 2026", "Q2 2026", etc.
+  rating    PerformanceRating
+  quality   Int @default(0) // 0-100
+  attendance Int @default(0) // 0-100
+  productivity Int @default(0) // 0-100
+  teamwork  Int @default(0) // 0-100
+  comments  String?
+  reviewedBy String? // Manager name
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -27,7 +265,219 @@ model Clock {
   userId    Int
   clockInTime DateTime?
   clockOutTime DateTime?
+  breaks    Break[]
   date      DateTime @default(now())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Break {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  clock     Clock   @relation(fields: [clockId], references: [id], onDelete: Cascade)
+  clockId   Int
+  breakStart DateTime
+  breakEnd  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== PAYROLL & FINANCE ====================
+
+model EmployeeWage {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int    @unique
+  hourlyRate Float? // Hourly rate if applicable
+  monthlySalary Float? // Monthly salary if applicable
+  annualSalary Float? // Annual salary
+  startDate DateTime
+  endDate   DateTime?
+  deductions Deduction[]
+  bonuses   Bonus[]
+  payrollRecords PayrollRecord[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deduction {
+  id        Int     @id @default(autoincrement())
+  wage      EmployeeWage @relation(fields: [wageId], references: [id], onDelete: Cascade)
+  wageId    Int
+  type      DeductionType
+  amount    Float
+  percentage Float? // If percentage-based
+  effectiveFrom DateTime
+  effectiveTo DateTime?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bonus {
+  id        Int     @id @default(autoincrement())
+  wage      EmployeeWage @relation(fields: [wageId], references: [id], onDelete: Cascade)
+  wageId    Int
+  type      BonusType
+  amount    Float
+  reason    String?
+  appliedIn DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PayrollRecord {
+  id        Int     @id @default(autoincrement())
+  wage      EmployeeWage @relation(fields: [wageId], references: [id], onDelete: Cascade)
+  wageId    Int
+  period    String // "Jan 2026", "Feb 2026", etc.
+  grossPay  Float
+  totalDeductions Float
+  totalBonuses Float
+  netPay    Float
+  hoursWorked Float
+  overtimeHours Float
+  status    String @default("GENERATED") // GENERATED, PROCESSED, PAID
+  paymentDate DateTime?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== SECURITY & COMPLIANCE ====================
+
+model AuditLog {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  action    String // "LOGIN", "UPDATE_PROFILE", "CREATE_RECORD", etc.
+  resource  String // "USER", "CLOCK", "PAYROLL", etc.
+  resourceId String?
+  changes   String? // JSON of what changed
+  ipAddress String?
+  userAgent String?
+  status    String @default("SUCCESS") // SUCCESS, FAILURE
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model TwoFactorAuth {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int    @unique
+  enabled   Boolean @default(false)
+  secret    String? // Encrypted 2FA secret
+  backupCodes String? // JSON array of backup codes
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LocationLog {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  latitude  Float
+  longitude Float
+  accuracy  Float?
+  action    String // "CLOCK_IN", "CLOCK_OUT"
+  timestamp DateTime
+  createdAt DateTime @default(now())
+}
+
+model IpLog {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  ipAddress String
+  action    String // "LOGIN", "API_CALL", etc.
+  userAgent String?
+  timestamp DateTime
+  createdAt DateTime @default(now())
+}
+
+// ==================== USER EXPERIENCE ====================
+
+model NotificationSetting {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int    @unique
+  emailNotifications Boolean @default(true)
+  pushNotifications Boolean @default(false)
+  clockInReminders Boolean @default(true)
+  shiftAlerts Boolean @default(true)
+  leaveNotifications Boolean @default(true)
+  payrollNotifications Boolean @default(true)
+  darkModeEnabled Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  type      NotificationType
+  title     String
+  message   String
+  related   String? // JSON with related data
+  read      Boolean @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== DATA MANAGEMENT ====================
+
+model ArchivedEmployee {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  name      String
+  email     String
+  department String?
+  role      String
+  lastActiveDate DateTime
+  archiveReason String?
+  archivedBy Int // User ID who archived
+  data      String // JSON of all employee data
+  createdAt DateTime @default(now())
+}
+
+model BulkImportLog {
+  id        Int     @id @default(autoincrement())
+  fileName  String
+  totalRecords Int
+  successCount Int
+  failureCount Int
+  importedBy Int // User ID
+  details   String? // JSON of failures/errors
+  status    String @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  createdAt DateTime @default(now())
+}
+
+// ==================== REPORTING & ANALYTICS ====================
+
+model Report {
+  id        Int     @id @default(autoincrement())
+  type      ReportType
+  title     String
+  generatedBy Int // User ID
+  period    String // "Jan 2026", "Q1 2026", etc.
+  data      String // JSON report data
+  fileUrl   String? // S3 or storage URL
+  status    String @default("PENDING") // PENDING, GENERATING, READY, FAILED
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id        Int     @id @default(autoincrement())
+  userId    Int?
+  eventType String // "PAGE_VIEW", "BUTTON_CLICK", "FORM_SUBMIT", etc.
+  eventName String
+  metadata  String? // JSON with event details
+  timestamp DateTime
+  createdAt DateTime @default(now())
 }
